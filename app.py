@@ -4,10 +4,10 @@ from tool.exa_search import *
 from langchain_openai import ChatOpenAI
 import os
 from decouple import config
-
+import time
+from http.server import SimpleHTTPRequestHandler, HTTPServer
 
 # Creating a research agent with ExaTool
-
 exa_tool = search_and_get_contents_tool
 twitter_tool = tweet
 
@@ -20,20 +20,18 @@ research_agent = Agent(
     goal='Conduct research using Exa',
     tools=[exa_tool],
     backstory='A diligent researcher using Exa for detailed information.',
-    llm = gpt
+    llm=gpt
 )
 
 tweet_agent = Agent(
-    role='Tweet Creator',   
+    role='Tweet Creator',
     goal="""
-    Create and post tweets based on research, To increase engagement of the account and to teach users AI
+    Create and post tweets based on research to increase engagement of the account and to teach users AI
     """,
     tools=[twitter_tool],
     backstory='A creative writer who can craft engaging tweets based on the latest research.',
-    llm = gpt
+    llm=gpt
 )
-
-
 
 # Research task
 research_task = Task(
@@ -54,7 +52,7 @@ research_task = Task(
 tweet_task = Task(
     description="""
     Create a tweet based on the research and post it on Twitter.
-    You have acces to twitter tool which can post on twitter
+    You have access to twitter tool which can post on twitter
     Ensure the character limit is 280 characters
     """,
     expected_output="""
@@ -62,7 +60,7 @@ tweet_task = Task(
     Ensure the character limit is 280 characters
 
     <Example Tweet>
-    Expected formated:
+    Expected formatted:
     Hook to engage audience
     bullet point summary (Around 3-4)
     </Example Tweet>
@@ -82,13 +80,22 @@ crew = Crew(
     process=Process.sequential  # Ensuring tasks are executed in sequence
 )
 
-# Kick off the crew with the input topic
-import time
+def start_crew():
+    while True:
+        # Execute the desired line
+        result = crew.kickoff(inputs={'topic': 'latest AI/LLM/AI Agents trends'})
+        print(result)
 
-while True:
-    # Execute the desired line
-    result = crew.kickoff(inputs={'topic': 'latest AI/LLM/AI Agents trends'})
-    print(result)
+        # Wait for 2 hours (2 hours * 60 minutes/hour * 60 seconds/minute)
+        time.sleep(2 * 60 * 60)
 
-    # Wait for 2 hours (2 hours * 60 minutes/hour * 60 seconds/minute)
-    time.sleep(2 * 60 * 60)
+# Start the background process in a separate thread
+import threading
+threading.Thread(target=start_crew).start()
+
+# Start a simple web server to keep the service alive
+PORT = os.environ.get('PORT', 8000)
+handler = SimpleHTTPRequestHandler
+httpd = HTTPServer(("", PORT), handler)
+print(f"Serving at port {PORT}")
+httpd.serve_forever()

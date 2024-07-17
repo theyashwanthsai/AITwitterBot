@@ -5,3 +5,4 @@ langchain_openai
 exa_py
 tweepy
 python-dotenv
+flask

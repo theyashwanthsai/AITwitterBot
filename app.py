@@ -102,5 +102,10 @@ def hello_world():
     return 'Hello, World!'
 
 if __name__ == '__main__':
+    # Start the background process in a separate thread
+    background_thread = threading.Thread(target=start_crew)
+    background_thread.daemon = True
+    background_thread.start()
+
     port = int(os.environ.get('PORT', 8000))
     app.run(host='0.0.0.0', port=port)

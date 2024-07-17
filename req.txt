@@ -4,4 +4,4 @@ python-decouple
 langchain_openai
 exa_py
 tweepy
-dotenv
+python-dotenv

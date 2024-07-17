@@ -1,8 +1,9 @@
 crewai_tools
-crewai
+crewai==0.28.8
 python-decouple
-langchain_openai
+langchain_openai==0.1.7
 exa_py
+crewai_tools==0.4.8
 tweepy
 python-dotenv
 flask

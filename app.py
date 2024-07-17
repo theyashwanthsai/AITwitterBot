@@ -5,7 +5,8 @@ from langchain_openai import ChatOpenAI
 import os
 from decouple import config
 import time
-from http.server import SimpleHTTPRequestHandler, HTTPServer
+from flask import Flask
+import threading
 
 # Creating a research agent with ExaTool
 exa_tool = search_and_get_contents_tool
@@ -90,12 +91,16 @@ def start_crew():
         time.sleep(2 * 60 * 60)
 
 # Start the background process in a separate thread
-import threading
-threading.Thread(target=start_crew).start()
+background_thread = threading.Thread(target=start_crew)
+background_thread.daemon = True
+background_thread.start()
 
-# Start a simple web server to keep the service alive
-PORT = os.environ.get('PORT', 8000)
-handler = SimpleHTTPRequestHandler
-httpd = HTTPServer(("", PORT), handler)
-print(f"Serving at port {PORT}")
-httpd.serve_forever()
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World!'
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 8000))
+    app.run(host='0.0.0.0', port=port)

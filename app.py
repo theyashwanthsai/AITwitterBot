@@ -1,12 +1,13 @@
-from crewai import Agent, Task, Crew, Process
-from tool.twitter import *
-from tool.exa_search import *
-from langchain_openai import ChatOpenAI
 import os
-from decouple import config
 import time
+
+from crewai import Agent, Crew, Process, Task
+from decouple import config
+from langchain_openai import ChatOpenAI
+
+from tool.exa_search import *
+from tool.twitter import *
 from flask import Flask
-import threading
 
 # Creating a research agent with ExaTool
 exa_tool = search_and_get_contents_tool
@@ -17,21 +18,21 @@ os.environ["OPENAI_API_KEY"] = config("OPENAI_API_KEY")
 gpt = ChatOpenAI(model_name="gpt-4o", temperature=0.9)
 
 research_agent = Agent(
-    role='Researcher',
-    goal='Conduct research using Exa',
+    role="Researcher",
+    goal="Conduct research using Exa",
     tools=[exa_tool],
-    backstory='A diligent researcher using Exa for detailed information.',
-    llm=gpt
+    backstory="A diligent researcher using Exa for detailed information.",
+    llm=gpt,
 )
 
 tweet_agent = Agent(
-    role='Tweet Creator',
+    role="Tweet Creator",
     goal="""
     Create and post tweets based on research to increase engagement of the account and to teach users AI
     """,
     tools=[twitter_tool],
-    backstory='A creative writer who can craft engaging tweets based on the latest research.',
-    llm=gpt
+    backstory="A creative writer who can craft engaging tweets based on the latest research.",
+    llm=gpt,
 )
 
 # Research task
@@ -46,7 +47,7 @@ research_task = Task(
     - Latest AI companies fundings
     - Latest AI research
     """,
-    agent=research_agent
+    agent=research_agent,
 )
 
 # Tweet task
@@ -71,41 +72,33 @@ tweet_task = Task(
     Pass the content before using the tool. Very important!
     """,
     agent=tweet_agent,
-    context=[research_task]
+    context=[research_task],
 )
 
 # Forming the crew
 crew = Crew(
     agents=[research_agent, tweet_agent],
     tasks=[research_task, tweet_task],
-    process=Process.sequential  # Ensuring tasks are executed in sequence
+    process=Process.sequential,  # Ensuring tasks are executed in sequence
 )
+
 
 def start_crew():
     while True:
         # Execute the desired line
-        result = crew.kickoff(inputs={'topic': 'latest AI/LLM/AI Agents trends'})
+        result = crew.kickoff(inputs={"topic": "latest AI/LLM/AI Agents trends"})
         print(result)
 
         # Wait for 2 hours (2 hours * 60 minutes/hour * 60 seconds/minute)
-        time.sleep(2 * 60 * 60)
+        time.sleep(60)
 
-# Start the background process in a separate thread
-background_thread = threading.Thread(target=start_crew)
-background_thread.daemon = True
-background_thread.start()
+
+from flask import Flask
 
 app = Flask(__name__)
 
 @app.route('/')
-def hello_world():
-    return 'Hello, World!'
+def home():
+    start_crew()
+    return "Crew process started!"
 
-if __name__ == '__main__':
-    # Start the background process in a separate thread
-    background_thread = threading.Thread(target=start_crew)
-    background_thread.daemon = True
-    background_thread.start()
-
-    port = int(os.environ.get('PORT', 8000))
-    app.run(host='0.0.0.0', port=port)

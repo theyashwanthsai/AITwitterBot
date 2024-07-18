@@ -102,7 +102,7 @@ def start_crew_endpoint():
 
 if __name__ == '__main__':
     start_crew()
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
 
 
 

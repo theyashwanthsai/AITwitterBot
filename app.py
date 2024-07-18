@@ -93,17 +93,7 @@ def start_crew():
 
 
 
-app = Flask(__name__)
-
-@app.route('/', methods=['GET'])
-def start_crew_endpoint():
-    
-    start_crew()
-    return "Crew started successfully", 200
-
-if __name__ == '__main__':
-
-    app.run(debug=True, port=5000)
+start_crew()
 
 
 

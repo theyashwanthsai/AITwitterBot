@@ -83,22 +83,15 @@ crew = Crew(
 )
 
 
-def start_crew():
-    while True:
-        # Execute the desired line
-        result = crew.kickoff(inputs={"topic": "latest AI/LLM/AI Agents trends"})
-        print(result)
+# def start_crew():
+#     while True:
+#         # Execute the desired line
+result = crew.kickoff(inputs={"topic": "latest AI/LLM/AI Agents trends"})
+print(result)
 
-        # Wait for 2 hours (2 hours * 60 minutes/hour * 60 seconds/minute)
-        time.sleep(60)
+        # # Wait for 2 hours (2 hours * 60 minutes/hour * 60 seconds/minute)
+        # time.sleep(60)
 
 
-from flask import Flask
 
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    start_crew()
-    return "Crew process started!"
 

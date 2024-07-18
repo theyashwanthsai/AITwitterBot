@@ -84,13 +84,12 @@ crew = Crew(
 
 
 def start_crew():
-    while True:
+    # while True:
         # Execute the desired line
-        result = crew.kickoff(inputs={"topic": "latest AI/LLM/AI Agents trends"})
-        print(result)
-
+    result = crew.kickoff(inputs={"topic": "latest AI/LLM/AI Agents trends"})
+    print(result)
         # Wait for 2 hours (2 hours * 60 minutes/hour * 60 seconds/minute)
-        time.sleep(60)
+        # time.sleep(60)
 
 
 
@@ -98,10 +97,12 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def start_crew_endpoint():
+    
+    start_crew()
     return "Crew started successfully", 200
 
 if __name__ == '__main__':
-    start_crew()
+
     app.run(debug=True, port=5000)
 
 

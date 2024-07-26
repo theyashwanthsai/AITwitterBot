@@ -19,7 +19,14 @@ def tweet(text: str) -> str:
         consumer_key=consumer_key, consumer_secret=consumer_secret,
         access_token=access_token, access_token_secret=access_token_secret
     )
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_token_secret)
+    api = tweepy.API(auth)
 
-    response = client.create_tweet(text=text)
+    media = api.media_upload("generated_images/1.png")
+    media_id = media.media_id_string
+    response = client.create_tweet(text=text, media_ids=[media_id])
     tweet_url = f"https://twitter.com/user/status/{response.data['id']}"
     return f"Tweet posted successfully: {tweet_url}"
+
+# tweet("hello", "1")

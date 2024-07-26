@@ -6,88 +6,100 @@ from decouple import config
 from langchain_openai import ChatOpenAI
 
 from tool.exa_search import *
-from tool.twitter import *
-from flask import Flask
+from twitter import *
+from tool.image_gen import *
+# from flask import Flask
 
 # Creating a research agent with ExaTool
 exa_tool = search_and_get_contents_tool
 twitter_tool = tweet
+img_tool = path_of_image
 
 os.environ["OPENAI_API_KEY"] = config("OPENAI_API_KEY")
 
-gpt = ChatOpenAI(model_name="gpt-4o", temperature=0.9)
+gpt = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.9)
 
+
+# Research Agent
 research_agent = Agent(
     role="Researcher",
-    goal="Conduct research using Exa",
+    goal="Conduct research using Exa to find top AI news from Reddit and Hackernews",
     tools=[exa_tool],
-    backstory="A diligent researcher using Exa for detailed information.",
+    backstory="A researcher who uses Exa for finding detailed information on the latest AI news.",
     llm=gpt,
 )
 
-tweet_agent = Agent(
-    role="Tweet Creator",
-    goal="""
-    Create and post tweets based on research to increase engagement of the account and to teach users AI
-    """,
-    tools=[twitter_tool],
-    backstory="A creative writer who can craft engaging tweets based on the latest research.",
-    llm=gpt,
-)
-
-# Research task
+# Research Task
 research_task = Task(
-    description="""Use Exa to research the latest trends in AI/LLM/AI Agents. 
-    Research should be latest (past week), Should be about AI news.
-    Research should be helpful for anyone who wants to stay updated and survive in this age of AI/LLM/AI Agents
+    description="""Use Exa to research the top AI news. Search from Reddit and Hackernews.
+    Focus on news that are innovative, trending, and have practical applications.
+    Research thoroughly to find the most relevant news.
     """,
-    expected_output="""A key summary of the latest news in AI/LLM/AI Agents.
-    Should include:
-    - One line about an Influential Person in AI
-    - Latest AI companies fundings
-    - Latest AI research
+    expected_output="""A key note of the top AI news.
+    Format:
+    - News title
+    - Brief description
+    - Why it's interesting or innovative
+    - Source (Reddit link or Hackernews link)
     """,
     agent=research_agent,
 )
 
-# Tweet task
-tweet_task = Task(
-    description="""
-    Create a tweet based on the research and post it on Twitter.
-    You have access to twitter tool which can post on twitter
-    Ensure the character limit is 280 characters
-    """,
-    expected_output="""
-    A tweet posted using the tool summarizing the latest trends in AI/LLMs/AI Agents. 
-    Ensure the character limit is 280 characters
-
-    <Example Tweet>
-    Expected formatted:
-    Hook to engage audience
-    bullet point summary (Around 3-4)
-    </Example Tweet>
-
-    Important: Tweet is posted using the tweet function tool. 
-    The tool takes an argument content which is basically the tweet content. 
-    Pass the content before using the tool. Very important!
-    """,
-    agent=tweet_agent,
-    context=[research_task],
+# Image Generator Agent
+image_generator_agent = Agent(
+  role="Image Generator",
+  goal="""Generate images based on the research done by the researcher agent. Aim to make it visually appealing and relevant to the research.""",
+  tools=[img_tool],
+  backstory="An artist who can create visually appealing images based on research.",
+  llm=gpt,
 )
+
+# Image Generation Task
+image_generation_task = Task(
+  description="""Generate an image using a prompt. The prompt should have these keywords, add more according to your feelings: "classical, retro, oil painting style, 80s style painting, dystopian world".""",
+  expected_output="A visually appealing image relevant to the research.",
+  agent=image_generator_agent,
+)
+
+# Tweet Agent
+tweet_agent = Agent(
+  role="Tweet Creator",
+  goal="""Create engaging and visually appealing SEO Optimized tweets based on the research done by the researcher agent. Ensure the character limit is 280 characters.""",
+  tools=[twitter_tool],
+  backstory="A social media expert who crafts engaging tweets based on research.",
+  llm=gpt,
+)
+
+# Tweet Task
+tweet_task = Task(
+  description="""Create a tweet based on the work done by the researcher agent. The tweet should be engaging, SEO optimized, and within the 280 character limit. Include relevant hashtags and a link to the source.""",
+  expected_output="""An engaging tweet with strict limit 280 letters:
+  - Top 3 Bullet point summary of the latest news in AI
+  - Make the tweet sound like human and less like AI.
+  """,
+  agent=tweet_agent,
+)
+
+
+
 
 # Forming the crew
 crew = Crew(
-    agents=[research_agent, tweet_agent],
-    tasks=[research_task, tweet_task],
-    process=Process.sequential,  # Ensuring tasks are executed in sequence
+    agents=[research_agent, image_generator_agent, tweet_agent],
+    tasks=[research_task, image_generation_task, tweet_task],
+    process=Process.sequential,
+    # planning=True,
+    # memory=True
+    # Ensuring tasks are executed in sequence
 )
 
 
 def start_crew():
     # while True:
         # Execute the desired line
-    result = crew.kickoff(inputs={"topic": "latest AI/LLM/AI Agents trends"})
+    result = crew.kickoff(inputs={"topic": "LLMs, AI, Agents, Crewai, llamaindex, langchain, claude."})
     print(result)
+    # tweet(result)
         # Wait for 2 hours (2 hours * 60 minutes/hour * 60 seconds/minute)
         # time.sleep(60)
 
